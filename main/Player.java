@@ -4,6 +4,7 @@ import com.jogamp.opengl.GL2;
 
 public class Player {
 	private Vector3f position;
+	private int chunkX, chunkZ;
 	private Vector3f positionEnd;
 	private Vector3f velocity;
 	private float yaw, pitch;
@@ -11,8 +12,11 @@ public class Player {
 	private static final float MAXSPEED = 0.30f;
 	private static final float WIDTH = 0.5f;
 	private static final float DEPTH = 0.5f;
+	private static final int RENDERDISTANCE = 3;
 	
 	public Player(float x, float y, float z, float pitch, float yaw) {
+		this.chunkX = (int)x / 16;
+		this.chunkZ = (int)z / 16;
 		position = new Vector3f(x, y, z);
 		positionEnd = new Vector3f(x + WIDTH, y + HEIGHT, z + DEPTH);
 		velocity = new Vector3f(0.0f, 0.0f, 0.0f);
@@ -76,6 +80,15 @@ public class Player {
 			velocity.setZ(0.0f);
 	}
 	
+	public boolean isChunkChanged() {
+		int chunkPrevX = chunkX;
+		int chunkPrevZ = chunkZ;
+		chunkX = (int)(position.getX() / 16.0f);
+		chunkZ = (int)(position.getZ() / 16.0f);
+		if(chunkX != chunkPrevX || chunkZ != chunkPrevZ)  { return true; }
+		else return false;
+	}
+	
 	//move the world around the camera
 	public void lookThrough(GL2 gl) {
 		gl.glRotatef(pitch, 1.0f, 0.0f, 0.0f);
@@ -89,4 +102,5 @@ public class Player {
 	public float getDepth() { return DEPTH; }
 	public float getWidth() { return WIDTH; }
 	public float getMaxSpeed() { return MAXSPEED; }
+	public int getRenderDistance() { return RENDERDISTANCE; }
 }

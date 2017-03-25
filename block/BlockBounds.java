@@ -5,6 +5,8 @@ import main.Vector3f;
 import main.World;
 
 public class BlockBounds {
+	// TODO: implement collision detection
+	
 	//1 = LEFT
 	//2 = RIGHT
 	//3 = TOP

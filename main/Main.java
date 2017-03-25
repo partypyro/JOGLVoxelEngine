@@ -1,7 +1,10 @@
 package main;
 
-import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.GL;
+import java.awt.event.KeyEvent;
+
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
+
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
@@ -11,11 +14,6 @@ import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.FPSAnimator;
 
-import java.awt.event.KeyEvent;
-import java.nio.FloatBuffer;
-
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
 import block.BlockType;
 
 public class Main implements GLEventListener {
@@ -23,9 +21,9 @@ public class Main implements GLEventListener {
 	private GLU glu;
 	private GL2 gl;
 	private static FPSAnimator animator;
-	public static Player camera = new Player(16.0f, 32.0f, 16.0f);
-	private FloatBuffer vertBuffer;
-	private FloatBuffer colorBuffer;
+	public static Player camera = new Player(32.0f, 50.0f, 32.0f);
+	private Renderer renderer;
+	
 	
 	@Override
 	public void display(GLAutoDrawable drawable) {
@@ -34,25 +32,20 @@ public class Main implements GLEventListener {
 		Controller.updateMotion();
 		camera.updateWithVelocity();
 		
-		/*long startTime = System.currentTimeMillis();
-		World.recomputeMeshAt(0, 0);
-		long endTime = System.currentTimeMillis();
-		System.out.println("TIME TO RECOMPUTE:" + (endTime - startTime));*/
-		
-		gl.glBegin(GL2.GL_LINES);
+		/*gl.glBegin(GL2.GL_LINES);
 		for(int x = 0; x < 16; x++) {
 			for(int y = 0; y < 16; y++) {
 				gl.glVertex3f(x * 16, 0.0f, y * 16);
 				gl.glVertex3f(x * 16, 100.0f, y * 16);
+				
 			}
 		}
-		gl.glEnd();
+		gl.glEnd(); */
+		if(camera.isChunkChanged()) {
+			renderer.buildAroundPlayer(camera.getPositionVector(), 2);
+		}
 		
-		gl.glFogCoordd(100);
-		gl.glVertexPointer(3, GL2.GL_FLOAT, 0, vertBuffer);
-		gl.glColorPointer(3, GL.GL_FLOAT, 0, colorBuffer);
-		//gl.glInterleavedArrays(GL2.GL_V3F, 0, World.vertexBuffer);
-		gl.glDrawArrays(GL2.GL_QUADS, 0, vertBuffer.remaining() / 3);
+		renderer.render();
 		
 		gl.glMatrixMode(GL2.GL_MODELVIEW);
 		gl.glLoadIdentity();
@@ -90,16 +83,13 @@ public class Main implements GLEventListener {
 		gl.glEnable(GL2.GL_DEPTH_TEST);
 		gl.glDepthFunc(GL2.GL_LESS);
 		
-		BlockType.registerBlockType(0, "Rock", 0.753f, 0.753f, 0.753f);
+		BlockType.registerBlockType(0, "Rock", 0.8f, 0.8f, 0.8f);
 		BlockType.registerBlockType(1, "Dirt", 0.545f, 0.271f, 0.075f);
+		BlockType.registerBlockType(2, "Grass", 0.1f, 0.8f, 0.0f);
 		
 		World.genWorld();
-		World.populateVertexBufferArray();
-		World.populateColorVertexArray();
-		World.createVertexBuffer();
-		World.createColorBuffer();
-		vertBuffer = Buffers.copyFloatBuffer(World.vertexBuffer);
-		colorBuffer = Buffers.copyFloatBuffer(World.colorBuffer);
+		renderer = new Renderer(gl);
+		renderer.buildAroundPlayer(camera.getPositionVector(), 1);
 	}
 
 	@Override
@@ -109,6 +99,7 @@ public class Main implements GLEventListener {
 		gl.glViewport(0, 0, width, height);
 		gl.glMatrixMode(GL2.GL_PROJECTION);
 		glu.gluPerspective(45.0f, h, 0.1, 100.0);
+		
 	}
 	
 	public static void main(String args[]) {
